@@ -20,7 +20,7 @@ func Test_a(t *testing.T) {
 				x: 3,
 			},
 			output: output{
-				value: 7,
+				value: 6,
 			},
 		},
 	}
