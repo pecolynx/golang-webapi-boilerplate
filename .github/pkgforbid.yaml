@@ -1,0 +1,17 @@
+---
+packageConfigs:
+  "github.com/pecolynx/golang-structure/src/domain/model":
+    forbiddenPackages:
+      - net/http
+      - database/sql
+      - gorm.io/gorm
+      - github.com/foo/bar/repository
+  "github.com/pecolynx/golang-structure/src/domain/service":
+    forbiddenPackages:
+      - github.com/foo/bar/repository
+      - "net/http"
+  "main":
+    forbiddenPackages:
+      - "net/http"
+
+debug: false
