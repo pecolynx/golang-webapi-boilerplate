@@ -14,6 +14,7 @@ const (
 	AppServiceLoggerContextKey    libdomain.ContextKey = "app_service"
 	AppGatewayLoggerContextKey    libdomain.ContextKey = "app_gateway"
 	AppControllerLoggerContextKey libdomain.ContextKey = "app_controller"
+	AppGinLoggerContextKey        libdomain.ContextKey = "app_gin"
 	AppTraceLoggerContextKey      libdomain.ContextKey = "app_trace"
 	AppAuthLoggerContextKey       libdomain.ContextKey = "app_auth"
 )
@@ -25,7 +26,9 @@ var (
 		AppServiceLoggerContextKey,
 		AppGatewayLoggerContextKey,
 		AppControllerLoggerContextKey,
+		AppGinLoggerContextKey,
 		AppTraceLoggerContextKey,
+		AppAuthLoggerContextKey,
 	}
 )
 

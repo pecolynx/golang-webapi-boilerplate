@@ -25,7 +25,7 @@ func NewTicketCreator(appUserModel domain.AppUserModel, rf RepositoryFactory) (T
 
 func (m *ticketCreator) AddTicket(ctx context.Context, param TicketAddParameter) (domain.TicketID, error) {
 	ticketRepo := m.rf.NewTicketRepository(ctx)
-	ticketID, err := ticketRepo.AddTicket(ctx, m, param)
+	ticketID, err := ticketRepo.AddTicket(ctx, m.GetAppUserID(), param)
 	if err != nil {
 		return nil, err
 	}

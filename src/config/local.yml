@@ -1,6 +1,6 @@
 ---
 app:
-  name: golang-structure
+  name: golang-webapi-boilerplate
   httpPort: 8080
   metricsPort: 8081
 db:
@@ -23,9 +23,13 @@ db:
 #   googleClientSecret: $GOOGLE_CLIENT_SECRET
 #   apiTimeoutSec: 5
 trace:
-  exporter: jaeger
-  jaeger:
-    endpoint: http://localhost:14268/api/traces
+  # exporter: jaeger
+  exporter: otlp
+  otlp:
+    endpoint: localhost:4318
+    insecure: true
+  # jaeger:
+    # endpoint: http://localhost:14268/api/traces
 cors:
   allowOrigins:
     - "*"
@@ -35,7 +39,7 @@ shutdown:
 log:
   level:
     default: debug
-    golang-structure: debug
+    golang-webapi-boilerplate: debug
 swagger:
   enabled: true
   host: localhost:8080

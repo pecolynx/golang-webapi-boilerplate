@@ -1,11 +1,12 @@
 package config
 
 import (
+	"context"
 	"io"
 	"os"
 
 	gcpexporter "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
-	// "go.opentelemetry.io/otel/exporters/jaeger"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -14,20 +15,25 @@ import (
 	libdomain "github.com/pecolynx/golang-webapi-boilerplate/lib/domain"
 )
 
-type JaegerConfig struct {
+type OTLPConfig struct {
 	Endpoint string `yaml:"endpoint" validate:"required"`
+	Insecure bool   `yaml:"insecure"`
 }
 
 type TraceConfig struct {
-	Exporter string        `yaml:"exporter" validate:"required"`
-	Jaeger   *JaegerConfig `yaml:"jaeger"`
+	Exporter string      `yaml:"exporter" validate:"required"`
+	OTLP     *OTLPConfig `yaml:"otlp"`
 }
 
-func initTracerExporter(traceConfig *TraceConfig) (sdktrace.SpanExporter, error) {
+func initTracerExporter(ctx context.Context, traceConfig *TraceConfig) (sdktrace.SpanExporter, error) {
 	switch traceConfig.Exporter {
-	// case "jaeger":
-	// 	// Create the Jaeger exporter
-	// 	return jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(traceConfig.Jaeger.Endpoint)))
+	case "otlp":
+		options := make([]otlptracehttp.Option, 0)
+		options = append(options, otlptracehttp.WithEndpoint(traceConfig.OTLP.Endpoint))
+		if traceConfig.OTLP.Insecure {
+			options = append(options, otlptracehttp.WithInsecure())
+		}
+		return otlptracehttp.New(ctx, options...)
 	case "gcp":
 		projectID := os.Getenv("GOOGLE_CLOUD_PROJECT")
 		return gcpexporter.New(gcpexporter.WithProjectID(projectID))
@@ -46,8 +52,8 @@ func initTracerExporter(traceConfig *TraceConfig) (sdktrace.SpanExporter, error)
 	}
 }
 
-func InitTracerProvider(appName string, traceConfig *TraceConfig) (*sdktrace.TracerProvider, error) {
-	exp, err := initTracerExporter(traceConfig)
+func InitTracerProvider(ctx context.Context, appName string, traceConfig *TraceConfig) (*sdktrace.TracerProvider, error) {
+	exp, err := initTracerExporter(ctx, traceConfig)
 	if err != nil {
 		return nil, err
 	}

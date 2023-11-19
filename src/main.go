@@ -13,8 +13,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
-
 	swaggerFiles "github.com/swaggo/files"     // swagger embed files
 	ginSwagger "github.com/swaggo/gin-swagger" // gin-swagger middleware
 	"github.com/swaggo/swag/example/basic/docs"
@@ -35,6 +33,7 @@ import (
 	"github.com/pecolynx/golang-webapi-boilerplate/src/log"
 	"github.com/pecolynx/golang-webapi-boilerplate/src/service"
 	"github.com/pecolynx/golang-webapi-boilerplate/src/sqls"
+	"github.com/pecolynx/golang-webapi-boilerplate/src/usecase"
 )
 
 const readHeaderTimeout = time.Duration(30) * time.Second
@@ -65,8 +64,10 @@ func main() {
 	defer sqlDB.Close()
 	defer tp.ForceFlush(ctx) // flushes any pending spans
 
+	loggerName := libdomain.ContextKey(cfg.App.Name)
 	ctx = log.InitLogger(ctx)
-	logger := liblog.GetLoggerFromContext(ctx, libdomain.ContextKey(cfg.App.Name))
+	ctx = liblog.WithLoggerName(ctx, loggerName)
+	logger := liblog.GetLoggerFromContext(ctx, loggerName)
 
 	rff := func(ctx context.Context, db *gorm.DB) (service.RepositoryFactory, error) {
 		return gateway.NewRepositoryFactory(ctx, cfg.DB.DriverName, db, time.UTC) // nolint:wrapcheck
@@ -106,7 +107,7 @@ func main() {
 
 	gracefulShutdownTime2 := time.Duration(cfg.Shutdown.TimeSec2) * time.Second
 
-	result := run(context.Background(), cfg, appTransactionManager)
+	result := run(ctx, cfg, appTransactionManager)
 
 	time.Sleep(gracefulShutdownTime2)
 	logger.InfoContext(ctx, "exited")
@@ -129,7 +130,7 @@ func initialize(ctx context.Context, env string) (*config.Config, *gorm.DB, *sql
 	}
 
 	// init tracer
-	tp, err := libconfig.InitTracerProvider(cfg.App.Name, cfg.Trace)
+	tp, err := libconfig.InitTracerProvider(ctx, cfg.App.Name, cfg.Trace)
 	if err != nil {
 		panic(err)
 	}
@@ -154,6 +155,8 @@ func initTransactionManager(db *gorm.DB, rff gateway.RepositoryFactoryFunc) serv
 }
 
 func run(ctx context.Context, cfg *config.Config, transactionManager service.TransactionManager) int {
+	logger := liblog.GetLoggerFromContext(ctx, libdomain.ContextKey(cfg.App.Name))
+
 	var eg *errgroup.Group
 	eg, ctx = errgroup.WithContext(ctx)
 
@@ -162,7 +165,7 @@ func run(ctx context.Context, cfg *config.Config, transactionManager service.Tra
 	}
 
 	eg.Go(func() error {
-		return appServer(ctx, cfg) // nolint:wrapcheck
+		return appServer(ctx, cfg, transactionManager) // nolint:wrapcheck
 	})
 	eg.Go(func() error {
 		return libgateway.MetricsServerProcess(ctx, cfg.App.MetricsPort, cfg.Shutdown.TimeSec1) // nolint:wrapcheck
@@ -176,45 +179,35 @@ func run(ctx context.Context, cfg *config.Config, transactionManager service.Tra
 	})
 
 	if err := eg.Wait(); err != nil {
-		logrus.Error(err)
+		logger.ErrorContext(ctx, "", slog.Any("err", err))
 		return 1
 	}
 	return 0
 }
 
-func appServer(ctx context.Context, cfg *config.Config) error {
+func appServer(ctx context.Context, cfg *config.Config, transactionManager service.TransactionManager) error {
 	logger := liblog.GetLoggerFromContext(ctx, libdomain.ContextKey(cfg.App.Name))
-	// // cors
+
+	// cors
 	corsConfig := libconfig.InitCORS(cfg.CORS)
-	// logrus.Infof("cors: %+v", corsConfig)
+	logger.InfoContext(ctx, fmt.Sprintf("cors: %+v", corsConfig))
 
-	// if err := corsConfig.Validate(); err != nil {
-	// 	return liberrors.Errorf("corsConfig.Validate. err: %w", err)
-	// }
+	if err := corsConfig.Validate(); err != nil {
+		return liberrors.Errorf("corsConfig.Validate. err: %w", err)
+	}
 
-	// studyMonitor := service.NewStudyMonitor()
-	// studyStatUpdater := studyStatUpdater{
-	// 	systemOwnerModel: systemOwnerModel,
-	// 	appTransaction:   appTransaction,
-	// }
-	// if err := studyMonitor.Attach(&studyStatUpdater); err != nil {
-	// 	return liberrors.Errorf(". err: %w", err)
-	// }
-
-	// privateRouterGroupFunc := []controller.InitRouterGroupFunc{
-	// 	controller.NewInitWorkbookRouterFunc(studentUsecaseWorkbook),
-	// 	controller.NewInitProblemRouterFunc(studentUsecaseProblem, newIteratorFunc),
-	// 	controller.NewInitStudyRouterFunc(studentUseCaseStudy),
-	// 	controller.NewInitAudioRouterFunc(studentUsecaseAudio),
-	// 	controller.NewInitStatRouterFunc(studentUsecaseStat),
-	// }
+	ticketCreatorUsecase := usecase.NewTicketCreatorUsecase(transactionManager)
+	privateRouterGroupFunc := []controller.InitRouterGroupFunc{
+		controller.NewInitTicketRouterFunc(ticketCreatorUsecase),
+	}
 
 	publicRouterGroupFunc := []controller.InitRouterGroupFunc{
 		controller.NewInitTestRouterFunc(),
 	}
 	router, err := controller.NewAppRouter(ctx,
 		publicRouterGroupFunc,
-		//privateRouterGroupFunc, pluginRouterGroupFunc, authTokenManager,
+		privateRouterGroupFunc,
+		// pluginRouterGroupFunc, authTokenManager,
 		corsConfig, cfg.App,
 		//cfg.Auth,
 		cfg.Debug)

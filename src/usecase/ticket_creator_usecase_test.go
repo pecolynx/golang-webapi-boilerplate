@@ -26,8 +26,8 @@ func Test_ticketCreatorUsecase_AddTicket(t *testing.T) {
 	require.NoError(t, err)
 
 	type input struct {
-		operator  domain.TicketCreatorID
-		parameter service.TicketAddParameter
+		operatorID domain.TicketCreatorID
+		parameter  service.TicketAddParameter
 	}
 	type output struct {
 		ticketID domain.TicketID
@@ -40,8 +40,8 @@ func Test_ticketCreatorUsecase_AddTicket(t *testing.T) {
 		{
 			name: "success",
 			input: input{
-				operator:  ticketCreatorID,
-				parameter: parameter,
+				operatorID: ticketCreatorID,
+				parameter:  parameter,
 			},
 			output: output{
 				ticketID: ticketID,
@@ -63,7 +63,7 @@ func Test_ticketCreatorUsecase_AddTicket(t *testing.T) {
 			usecase := usecase.NewTicketCreatorUsecase(transactionManager)
 
 			// given
-			appUserRepoMock.On("FindTicketCreatorByID", ctx, tt.input.operator).Return(ticketCreator, nil)
+			appUserRepoMock.On("FindTicketCreatorByID", ctx, tt.input.operatorID).Return(ticketCreator, nil)
 			ticketRepositoryMock.On("AddTicket", ctx, ticketCreator, tt.input.parameter).Return(tt.output.ticketID, nil)
 
 			// when

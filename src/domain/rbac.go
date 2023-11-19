@@ -15,10 +15,10 @@ type RBACAction string
 // 	return RBACObject(fmt.Sprintf("space_%d", uint(spaceID)))
 // }
 
-func NewUserObject(appUserID AppUserID) RBACUser {
+func NewRBACUserObject(appUserID AppUserID) RBACUser {
 	return RBACUser(fmt.Sprintf("user_%d", appUserID.Int()))
 }
 
-var PrivilegeRead = RBACAction("read")
-var PrivilegeUpdate = RBACAction("update")
-var PrivilegeRemove = RBACAction("remove")
+var RBACReadAction = RBACAction("read")
+var RBACUpdatection = RBACAction("update")
+var RBACRemoveAction = RBACAction("remove")

@@ -11,7 +11,7 @@ const DefaultPageNo = 1
 const DefaultPageSize = 10
 
 type TicketCreatorUsecase interface {
-	AddTicket(ctx context.Context, operator domain.TicketCreatorID, parameter service.TicketAddParameter) (domain.TicketID, error)
+	AddTicket(ctx context.Context, operatorID domain.TicketCreatorID, parameter service.TicketAddParameter) (domain.TicketID, error)
 }
 
 type ticketCreatorUsecase struct {
@@ -24,12 +24,12 @@ func NewTicketCreatorUsecase(transactionManager service.TransactionManager) Tick
 	}
 }
 
-func (s *ticketCreatorUsecase) AddTicket(ctx context.Context, operator domain.TicketCreatorID, parameter service.TicketAddParameter) (domain.TicketID, error) {
+func (s *ticketCreatorUsecase) AddTicket(ctx context.Context, operatorID domain.TicketCreatorID, parameter service.TicketAddParameter) (domain.TicketID, error) {
 	var addedTicketID domain.TicketID
 
 	if err := s.transactionManager.Do(ctx, func(rf service.RepositoryFactory) error {
 		appUserRepo := rf.NewAppUserRepository(ctx)
-		ticketCreator, err := appUserRepo.FindTicketCreatorByID(ctx, operator)
+		ticketCreator, err := appUserRepo.FindTicketCreatorByID(ctx, operatorID)
 		if err != nil {
 			return err
 		}

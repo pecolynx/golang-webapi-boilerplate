@@ -14,7 +14,11 @@ var ErrTicketAlreadyExists = errors.New("ticket already exists")
 var ErrTicketPermissionDenied = errors.New("permission denied")
 
 type TicketRepository interface {
-	AddTicket(ctx context.Context, operator TicketCreator, param TicketAddParameter) (domain.TicketID, error)
+	AddTicket(ctx context.Context, operatorID domain.AppUserID, param TicketAddParameter) (domain.TicketID, error)
+
+	RemoveTicket(ctx context.Context, operatorID domain.AppUserID, ticketID domain.TicketID, version int) error
+
+	CanDo(ctx context.Context, operatorID domain.AppUserID, ticketID domain.TicketID, action domain.RBACAction) (bool, error)
 }
 
 type TicketAddParameter interface {

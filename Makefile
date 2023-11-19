@@ -27,3 +27,15 @@ gen-src:
 .PHONY: update-mod
 update-mod:
 	@go get -u ./...
+
+dev-docker-up:
+	@docker compose -f docker/development/docker-compose.yml up -d
+
+dev-docker-down:
+	@docker compose -f docker/development/docker-compose.yml down
+
+test-docker-up:
+	@docker compose -f docker/test/docker-compose.yml up -d
+
+test-docker-down:
+	@docker compose -f docker/test/docker-compose.yml down

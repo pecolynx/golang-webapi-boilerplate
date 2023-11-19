@@ -1,6 +1,7 @@
 package domain
 
 type TicketCreatorID interface {
+	AppUserID
 	Int() int
 }
 
