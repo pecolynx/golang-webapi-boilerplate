@@ -19,3 +19,11 @@ lint:
 .PHONY: test
 test:
 	@go test -coverprofile="coverage.txt" -covermode=atomic ./... -count=1
+
+.PHONY: gen-src
+gen-src:
+	mockery
+
+.PHONY: update-mod
+update-mod:
+	@go get -u ./...

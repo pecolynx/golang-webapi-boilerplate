@@ -1,0 +1,62 @@
+---
+app:
+  name: cocotola-api
+  httpPort: 8080
+  metricsPort: 8081
+  jobPort: 8082
+  ownerPassword: $OWNER_PASSWORD
+  testUserEmail: $TEST_USER_EMAIL
+db:
+  # driverName: sqlite3
+  # sqlite3:
+  #   file: app.db
+  driverName: mysql
+  mysql:
+    username: $MYSQL_USERNAME
+    password: $MYSQL_PASSWORD
+    host: $MYSQL_HOST
+    port: $MYSQL_PORT
+    database: $MYSQL_DATABASE
+auth:
+  signingKey: $SIGNING_KEY
+  accessTokenTtlMin: 30
+  refreshTokenTtlHour: 720
+  googleCallbackUrl: https://www.cocotola.com/app/callback
+  googleClientId: 830416463276-lf7d9r39v1ct78u6p1dke6cv5kd8g6o1.apps.googleusercontent.com
+  googleClientSecret: $GOOGLE_CLIENT_SECRET
+  apiTimeoutSec: 5
+translator:
+  endpoint: http://cocotola-translator-api
+  timeoutSec: 5
+  username: $AUTH_USERNAME
+  password: $AUTH_PASSWORD
+  grpcAddr: cocotola-translator-api:50151
+tatoeba:
+  endpoint: http://cocotola-tatoeba-api
+  timeoutSec: 3
+  username: $AUTH_USERNAME
+  password: $AUTH_PASSWORD
+synthesizer:
+  endpoint: http://cocotola-synthesizer-api
+  timeoutSec: 3
+  username: $AUTH_USERNAME
+  password: $AUTH_PASSWORD
+trace:
+  exporter: gcp
+  # jaeger:
+  #   endpoint: http://localhost:14268/api/traces
+cors:
+  allowOrigins:
+    - "https://www.cocotola.com"
+shutdown:
+  timeSec1: 10
+  timeSec2: 10
+log:
+  level: $LOG_LEVEL
+swagger:
+  enabled: false
+  host: localhost:8080
+  schema: http
+debug:
+  ginMode: false
+  wait: false

@@ -6,3 +6,4 @@ https://www.geeksforgeeks.org/how-to-install-golang-migrate-on-ubuntu/
 
 air
 
+pre-commit
