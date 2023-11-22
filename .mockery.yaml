@@ -29,3 +29,8 @@ packages:
       TicketRepository:
       RepositoryFactory:
       TicketCreator:
+  github.com/pecolynx/golang-webapi-boilerplate/src/usecase:
+    config:
+      dir: src/usecase/mocks
+    interfaces:
+      TicketCreatorUsecase:

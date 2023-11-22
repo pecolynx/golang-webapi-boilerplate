@@ -24,25 +24,25 @@ func (_m *TicketRepository) EXPECT() *TicketRepository_Expecter {
 	return &TicketRepository_Expecter{mock: &_m.Mock}
 }
 
-// AddTicket provides a mock function with given fields: ctx, operator, param
-func (_m *TicketRepository) AddTicket(ctx context.Context, operator service.TicketCreator, param service.TicketAddParameter) (domain.TicketID, error) {
-	ret := _m.Called(ctx, operator, param)
+// AddTicket provides a mock function with given fields: ctx, operatorID, param
+func (_m *TicketRepository) AddTicket(ctx context.Context, operatorID domain.AppUserID, param service.TicketAddParameter) (domain.TicketID, error) {
+	ret := _m.Called(ctx, operatorID, param)
 
 	var r0 domain.TicketID
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, service.TicketCreator, service.TicketAddParameter) (domain.TicketID, error)); ok {
-		return rf(ctx, operator, param)
+	if rf, ok := ret.Get(0).(func(context.Context, domain.AppUserID, service.TicketAddParameter) (domain.TicketID, error)); ok {
+		return rf(ctx, operatorID, param)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, service.TicketCreator, service.TicketAddParameter) domain.TicketID); ok {
-		r0 = rf(ctx, operator, param)
+	if rf, ok := ret.Get(0).(func(context.Context, domain.AppUserID, service.TicketAddParameter) domain.TicketID); ok {
+		r0 = rf(ctx, operatorID, param)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(domain.TicketID)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, service.TicketCreator, service.TicketAddParameter) error); ok {
-		r1 = rf(ctx, operator, param)
+	if rf, ok := ret.Get(1).(func(context.Context, domain.AppUserID, service.TicketAddParameter) error); ok {
+		r1 = rf(ctx, operatorID, param)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -57,15 +57,15 @@ type TicketRepository_AddTicket_Call struct {
 
 // AddTicket is a helper method to define mock.On call
 //   - ctx context.Context
-//   - operator service.TicketCreator
+//   - operatorID domain.AppUserID
 //   - param service.TicketAddParameter
-func (_e *TicketRepository_Expecter) AddTicket(ctx interface{}, operator interface{}, param interface{}) *TicketRepository_AddTicket_Call {
-	return &TicketRepository_AddTicket_Call{Call: _e.mock.On("AddTicket", ctx, operator, param)}
+func (_e *TicketRepository_Expecter) AddTicket(ctx interface{}, operatorID interface{}, param interface{}) *TicketRepository_AddTicket_Call {
+	return &TicketRepository_AddTicket_Call{Call: _e.mock.On("AddTicket", ctx, operatorID, param)}
 }
 
-func (_c *TicketRepository_AddTicket_Call) Run(run func(ctx context.Context, operator service.TicketCreator, param service.TicketAddParameter)) *TicketRepository_AddTicket_Call {
+func (_c *TicketRepository_AddTicket_Call) Run(run func(ctx context.Context, operatorID domain.AppUserID, param service.TicketAddParameter)) *TicketRepository_AddTicket_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(service.TicketCreator), args[2].(service.TicketAddParameter))
+		run(args[0].(context.Context), args[1].(domain.AppUserID), args[2].(service.TicketAddParameter))
 	})
 	return _c
 }
@@ -75,7 +75,163 @@ func (_c *TicketRepository_AddTicket_Call) Return(_a0 domain.TicketID, _a1 error
 	return _c
 }
 
-func (_c *TicketRepository_AddTicket_Call) RunAndReturn(run func(context.Context, service.TicketCreator, service.TicketAddParameter) (domain.TicketID, error)) *TicketRepository_AddTicket_Call {
+func (_c *TicketRepository_AddTicket_Call) RunAndReturn(run func(context.Context, domain.AppUserID, service.TicketAddParameter) (domain.TicketID, error)) *TicketRepository_AddTicket_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CanDo provides a mock function with given fields: ctx, operatorID, ticketID, action
+func (_m *TicketRepository) CanDo(ctx context.Context, operatorID domain.AppUserID, ticketID domain.TicketID, action domain.RBACAction) (bool, error) {
+	ret := _m.Called(ctx, operatorID, ticketID, action)
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, domain.AppUserID, domain.TicketID, domain.RBACAction) (bool, error)); ok {
+		return rf(ctx, operatorID, ticketID, action)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, domain.AppUserID, domain.TicketID, domain.RBACAction) bool); ok {
+		r0 = rf(ctx, operatorID, ticketID, action)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, domain.AppUserID, domain.TicketID, domain.RBACAction) error); ok {
+		r1 = rf(ctx, operatorID, ticketID, action)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TicketRepository_CanDo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CanDo'
+type TicketRepository_CanDo_Call struct {
+	*mock.Call
+}
+
+// CanDo is a helper method to define mock.On call
+//   - ctx context.Context
+//   - operatorID domain.AppUserID
+//   - ticketID domain.TicketID
+//   - action domain.RBACAction
+func (_e *TicketRepository_Expecter) CanDo(ctx interface{}, operatorID interface{}, ticketID interface{}, action interface{}) *TicketRepository_CanDo_Call {
+	return &TicketRepository_CanDo_Call{Call: _e.mock.On("CanDo", ctx, operatorID, ticketID, action)}
+}
+
+func (_c *TicketRepository_CanDo_Call) Run(run func(ctx context.Context, operatorID domain.AppUserID, ticketID domain.TicketID, action domain.RBACAction)) *TicketRepository_CanDo_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(domain.AppUserID), args[2].(domain.TicketID), args[3].(domain.RBACAction))
+	})
+	return _c
+}
+
+func (_c *TicketRepository_CanDo_Call) Return(_a0 bool, _a1 error) *TicketRepository_CanDo_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *TicketRepository_CanDo_Call) RunAndReturn(run func(context.Context, domain.AppUserID, domain.TicketID, domain.RBACAction) (bool, error)) *TicketRepository_CanDo_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// FindMyTickets provides a mock function with given fields: ctx, operatorID, param
+func (_m *TicketRepository) FindMyTickets(ctx context.Context, operatorID domain.AppUserID, param service.TicketSearchCondition) (service.TicketSearchResult, error) {
+	ret := _m.Called(ctx, operatorID, param)
+
+	var r0 service.TicketSearchResult
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, domain.AppUserID, service.TicketSearchCondition) (service.TicketSearchResult, error)); ok {
+		return rf(ctx, operatorID, param)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, domain.AppUserID, service.TicketSearchCondition) service.TicketSearchResult); ok {
+		r0 = rf(ctx, operatorID, param)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(service.TicketSearchResult)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, domain.AppUserID, service.TicketSearchCondition) error); ok {
+		r1 = rf(ctx, operatorID, param)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TicketRepository_FindMyTickets_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindMyTickets'
+type TicketRepository_FindMyTickets_Call struct {
+	*mock.Call
+}
+
+// FindMyTickets is a helper method to define mock.On call
+//   - ctx context.Context
+//   - operatorID domain.AppUserID
+//   - param service.TicketSearchCondition
+func (_e *TicketRepository_Expecter) FindMyTickets(ctx interface{}, operatorID interface{}, param interface{}) *TicketRepository_FindMyTickets_Call {
+	return &TicketRepository_FindMyTickets_Call{Call: _e.mock.On("FindMyTickets", ctx, operatorID, param)}
+}
+
+func (_c *TicketRepository_FindMyTickets_Call) Run(run func(ctx context.Context, operatorID domain.AppUserID, param service.TicketSearchCondition)) *TicketRepository_FindMyTickets_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(domain.AppUserID), args[2].(service.TicketSearchCondition))
+	})
+	return _c
+}
+
+func (_c *TicketRepository_FindMyTickets_Call) Return(_a0 service.TicketSearchResult, _a1 error) *TicketRepository_FindMyTickets_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *TicketRepository_FindMyTickets_Call) RunAndReturn(run func(context.Context, domain.AppUserID, service.TicketSearchCondition) (service.TicketSearchResult, error)) *TicketRepository_FindMyTickets_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// RemoveTicket provides a mock function with given fields: ctx, operatorID, ticketID, version
+func (_m *TicketRepository) RemoveTicket(ctx context.Context, operatorID domain.AppUserID, ticketID domain.TicketID, version int) error {
+	ret := _m.Called(ctx, operatorID, ticketID, version)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, domain.AppUserID, domain.TicketID, int) error); ok {
+		r0 = rf(ctx, operatorID, ticketID, version)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// TicketRepository_RemoveTicket_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveTicket'
+type TicketRepository_RemoveTicket_Call struct {
+	*mock.Call
+}
+
+// RemoveTicket is a helper method to define mock.On call
+//   - ctx context.Context
+//   - operatorID domain.AppUserID
+//   - ticketID domain.TicketID
+//   - version int
+func (_e *TicketRepository_Expecter) RemoveTicket(ctx interface{}, operatorID interface{}, ticketID interface{}, version interface{}) *TicketRepository_RemoveTicket_Call {
+	return &TicketRepository_RemoveTicket_Call{Call: _e.mock.On("RemoveTicket", ctx, operatorID, ticketID, version)}
+}
+
+func (_c *TicketRepository_RemoveTicket_Call) Run(run func(ctx context.Context, operatorID domain.AppUserID, ticketID domain.TicketID, version int)) *TicketRepository_RemoveTicket_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(domain.AppUserID), args[2].(domain.TicketID), args[3].(int))
+	})
+	return _c
+}
+
+func (_c *TicketRepository_RemoveTicket_Call) Return(_a0 error) *TicketRepository_RemoveTicket_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *TicketRepository_RemoveTicket_Call) RunAndReturn(run func(context.Context, domain.AppUserID, domain.TicketID, int) error) *TicketRepository_RemoveTicket_Call {
 	_c.Call.Return(run)
 	return _c
 }

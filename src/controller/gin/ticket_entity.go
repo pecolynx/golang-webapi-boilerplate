@@ -31,22 +31,39 @@ func NewBaseModel(model libdomain.BaseModel) (BaseModel, error) {
 	return m, nil
 }
 
-type TicketResponseHTTPEntity struct {
+type TicketResponseDetails struct {
 	BaseModel
-	ID      int    `json:"id"`
-	Name    string `json:"name" validate:"required"`
-	Content string `json:"content" validate:"required"`
+	ID          int    `json:"id"`
+	Title       string `json:"title" validate:"required"`
+	Description string `json:"description"`
 }
 
 type TicketAddParameter struct {
-	Name        string `json:"name" binding:"required"`
+	Title       string `json:"title" binding:"required"`
 	Description string `json:"description"`
 }
 
 type TicketUpdateParameter struct {
-	Name string `json:"name" binding:"required"`
+	Title       string `json:"title" binding:"required"`
+	Description string `json:"description"`
 }
 
+type TicketFindParameter struct {
+	PageNo   int `json:"pageNo" binding:"required,gte=1"`
+	PageSize int `json:"pageSize" binding:"required,gte=1,lte=100"`
+}
+
+type TicketResponseSummary struct {
+	BaseModel
+	ID          int    `json:"id"`
+	Title       string `json:"title" binding:"required"`
+	Description string `json:"description"`
+}
+
+type TicketFindResponse struct {
+	TotalCount int                      `json:"totalCount" validate:"gte=0"`
+	Results    []*TicketResponseSummary `json:"results" validate:"dive"`
+}
 type IDResponse struct {
 	ID int `json:"id"`
 }

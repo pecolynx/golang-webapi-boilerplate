@@ -4,18 +4,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
+	"strconv"
 	"time"
 
-	// casbinquery "github.com/pecolynx/casbin-query"
+	"gorm.io/gorm"
 
-	// "github.com/kujilabo/cocotola/cocotola-api/src/app/gateway/casbinquery"
-
+	libdomain "github.com/pecolynx/golang-webapi-boilerplate/lib/domain"
 	liberrors "github.com/pecolynx/golang-webapi-boilerplate/lib/errors"
 	libgateway "github.com/pecolynx/golang-webapi-boilerplate/lib/gateway"
 	domain "github.com/pecolynx/golang-webapi-boilerplate/src/domain"
+	"github.com/pecolynx/golang-webapi-boilerplate/src/gateway/casbinquery"
 	"github.com/pecolynx/golang-webapi-boilerplate/src/service"
-	"gorm.io/gorm"
-	// "github.com/kujilabo/cocotola/cocotola-api/src/app/gateway/casbinquery"
 )
 
 type ticketEntity struct {
@@ -33,23 +33,23 @@ func (e *ticketEntity) TableName() string {
 	return "ticket"
 }
 
-// func (e *ticketEntity) toTicketModel() (domain.TicketModel, error) {
-// 	baseModel, err := libdomain.NewBaseModel(e.Version, e.CreatedAt, e.UpdatedAt, e.CreatedBy, e.UpdatedBy)
-// 	if err != nil {
-// 		return nil, liberrors.Errorf("libdomain.NewModel. err: %w", err)
-// 	}
+func (e *ticketEntity) toTicketModel() (domain.TicketModel, error) {
+	baseModel, err := libdomain.NewBaseModel(e.Version, e.CreatedAt, e.UpdatedAt, e.CreatedBy, e.UpdatedBy)
+	if err != nil {
+		return nil, liberrors.Errorf("libdomain.NewModel. err: %w", err)
+	}
 
-// 	ticketID, err := domain.NewTicketID(e.ID)
-// 	if err != nil {
-// 		return nil, liberrors.Errorf("failed to NewTicketID. value: %s, err: %w", e.ID, err)
-// 	}
+	ticketID, err := domain.NewTicketID(e.ID)
+	if err != nil {
+		return nil, liberrors.Errorf("failed to NewTicketID. value: %s, err: %w", e.ID, err)
+	}
 
-// 	ticket, err := domain.NewTicketModel(baseModel, ticketID, e.Title, e.Description)
-// 	if err != nil {
-// 		return nil, liberrors.Errorf("failed to NewTicket. entity: %+v, err: %w", e, err)
-// 	}
-// 	return ticket, nil
-// }
+	ticket, err := domain.NewTicketModel(baseModel, ticketID, e.Title, e.Description)
+	if err != nil {
+		return nil, liberrors.Errorf("failed to NewTicket. entity: %+v, err: %w", e, err)
+	}
+	return ticket, nil
+}
 
 type ticketRepository struct {
 	driverName string
@@ -141,6 +141,64 @@ func (r *ticketRepository) RemoveTicket(ctx context.Context, operatorID domain.A
 	}
 
 	return nil
+}
+
+func (r *ticketRepository) FindMyTickets(ctx context.Context, operatorID domain.AppUserID, param service.TicketSearchCondition) (service.TicketSearchResult, error) {
+	_, span := tracer.Start(ctx, "ticketRepository.FindMyTickets")
+	defer span.End()
+
+	limit := param.GetPageSize()
+	offset := (param.GetPageNo() - 1) * param.GetPageSize()
+	ticketEntities := []ticketEntity{}
+
+	objectColumnName := "name"
+	subQuery, err := casbinquery.QueryObject(r.db, r.driverName, "ticket_", objectColumnName, "user_"+strconv.Itoa(operatorID.Int()), "read")
+	if err != nil {
+		return nil, liberrors.Errorf("casbinquery.QueryObject. err: %w", err)
+	}
+
+	if result := r.db.Model(&ticketEntity{}).
+		Joins("inner join (?) AS t3 ON `ticket`.`id`= t3."+objectColumnName, subQuery).
+		Order("`ticket`.`name`").Limit(limit).Offset(offset).
+		Scan(&ticketEntities); result.Error != nil {
+		return nil, result.Error
+	}
+
+	tickets := make([]domain.TicketModel, len(ticketEntities))
+	// priv := userD.NewPrivileges([]userD.RBACAction{domain.PrivilegeRead})
+	for i, e := range ticketEntities {
+		t, err := e.toTicketModel()
+		if err != nil {
+			return nil, liberrors.Errorf("toWorkbookModel. err: %w", err)
+		}
+		tickets[i] = t
+	}
+
+	var count int64
+	rows, err := r.db.Raw("select count(*) from workbook inner join (?) AS t3 ON `workbook`.`id`= t3."+objectColumnName, subQuery).Rows()
+	if err != nil {
+		return nil, liberrors.Errorf("r.db.Raw. err: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var c int64
+		if err := rows.Scan(&c); err != nil {
+			return nil, liberrors.Errorf("rows.Scan. err: %w", err)
+		}
+		count += c
+	}
+
+	if count > math.MaxInt32 {
+		return nil, errors.New("overflow")
+	}
+
+	result, err := service.NewProblemSearchResult(int(count), tickets)
+	if err != nil {
+		return nil, liberrors.Errorf(". err: %w", err)
+	}
+
+	return result, nil
 }
 
 func (r *ticketRepository) getAllRolesForTicket(ticketID domain.TicketID) []domain.RBACRole {

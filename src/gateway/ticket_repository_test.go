@@ -17,7 +17,7 @@ func Test_ticketRepository_AddTicket(t *testing.T) {
 	ctx := context.Background()
 	loc := time.UTC
 
-	ticketCreatorID, err := domain.NewTicketCreatorID(1)
+	standardUserID, err := domain.NewStandardUserID(1)
 	require.NoError(t, err)
 	parameter, err := service.NewTicketAddParameter("TITLE", "DESCRIPTION")
 	require.NoError(t, err)
@@ -44,10 +44,10 @@ func Test_ticketRepository_AddTicket(t *testing.T) {
 				require.NoError(t, err)
 
 				ticketRepo := rf.NewTicketRepository(ctx)
-				ticketID, err := ticketRepo.AddTicket(ctx, ticketCreatorID, parameter)
+				ticketID, err := ticketRepo.AddTicket(ctx, standardUserID, parameter)
 				require.NoError(t, err)
 				assert.Greater(t, ticketID.Int(), 0)
-				can, err := ticketRepo.CanDo(ctx, ticketCreatorID, ticketID, domain.RBACRemoveAction)
+				can, err := ticketRepo.CanDo(ctx, standardUserID, ticketID, domain.RBACRemoveAction)
 				require.NoError(t, err)
 				assert.True(t, can)
 			})

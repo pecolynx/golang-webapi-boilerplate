@@ -11,7 +11,8 @@ const DefaultPageNo = 1
 const DefaultPageSize = 10
 
 type TicketCreatorUsecase interface {
-	AddTicket(ctx context.Context, operatorID domain.TicketCreatorID, parameter service.TicketAddParameter) (domain.TicketID, error)
+	AddTicket(ctx context.Context, operatorID domain.StandardUserID, parameter service.TicketAddParameter) (domain.TicketID, error)
+	FindTickets(ctx context.Context, operatorID domain.StandardUserID, parameter service.TicketSearchCondition) (service.TicketSearchResult, error)
 }
 
 type ticketCreatorUsecase struct {
@@ -24,9 +25,8 @@ func NewTicketCreatorUsecase(transactionManager service.TransactionManager) Tick
 	}
 }
 
-func (s *ticketCreatorUsecase) AddTicket(ctx context.Context, operatorID domain.TicketCreatorID, parameter service.TicketAddParameter) (domain.TicketID, error) {
+func (s *ticketCreatorUsecase) AddTicket(ctx context.Context, operatorID domain.StandardUserID, parameter service.TicketAddParameter) (domain.TicketID, error) {
 	var addedTicketID domain.TicketID
-
 	if err := s.transactionManager.Do(ctx, func(rf service.RepositoryFactory) error {
 		appUserRepo := rf.NewAppUserRepository(ctx)
 		ticketCreator, err := appUserRepo.FindTicketCreatorByID(ctx, operatorID)
@@ -44,4 +44,25 @@ func (s *ticketCreatorUsecase) AddTicket(ctx context.Context, operatorID domain.
 	}
 
 	return addedTicketID, nil
+}
+
+func (s *ticketCreatorUsecase) FindTickets(ctx context.Context, operatorID domain.StandardUserID, parameter service.TicketSearchCondition) (service.TicketSearchResult, error) {
+	var result service.TicketSearchResult
+	if err := s.transactionManager.Do(ctx, func(rf service.RepositoryFactory) error {
+		appUserRepo := rf.NewAppUserRepository(ctx)
+		ticketCreator, err := appUserRepo.FindTicketCreatorByID(ctx, operatorID)
+		if err != nil {
+			return err
+		}
+		tmpResult, err := ticketCreator.FindMyTickets(ctx, parameter)
+		if err != nil {
+			return err
+		}
+		result = tmpResult
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }

@@ -95,13 +95,13 @@ func newAppUserRepository(ctx context.Context, driverName string, db *gorm.DB, r
 		rf: rf,
 	}
 }
-func (r *appUserRepository) FindTicketCreatorByID(ctx context.Context, ticketCreatorID domain.TicketCreatorID) (service.TicketCreator, error) {
+func (r *appUserRepository) FindTicketCreatorByID(ctx context.Context, standardUserID domain.StandardUserID) (service.TicketCreator, error) {
 	_, span := tracer.Start(ctx, "appUserRepository.FindAppUserByLoginID")
 	defer span.End()
 
 	appUser := appUserEntity{}
 	if result := r.db.Where(&appUserEntity{
-		ID: ticketCreatorID.Int(),
+		ID: standardUserID.Int(),
 	}).First(&appUser); result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, service.ErrAppUserNotFound

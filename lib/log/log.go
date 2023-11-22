@@ -43,7 +43,7 @@ func GetLoggerFromContext(ctx context.Context, key domain.ContextKey) *slog.Logg
 	defer lock.Unlock()
 
 	if _, ok := Loggers[key]; !ok {
-		defaultLogger.WarnContext(ctx, fmt.Sprintf("logger not found. logger: %s", key))
+		defaultLogger.DebugContext(ctx, fmt.Sprintf("logger not found. logger: %s", key))
 		return defaultLogger
 	}
 

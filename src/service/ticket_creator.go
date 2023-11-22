@@ -9,6 +9,7 @@ import (
 type TicketCreator interface {
 	domain.AppUserModel
 	AddTicket(ctx context.Context, param TicketAddParameter) (domain.TicketID, error)
+	FindMyTickets(ctx context.Context, param TicketSearchCondition) (TicketSearchResult, error)
 }
 
 type ticketCreator struct {
@@ -31,4 +32,14 @@ func (m *ticketCreator) AddTicket(ctx context.Context, param TicketAddParameter)
 	}
 
 	return ticketID, nil
+}
+
+func (m *ticketCreator) FindMyTickets(ctx context.Context, param TicketSearchCondition) (TicketSearchResult, error) {
+	ticketRepo := m.rf.NewTicketRepository(ctx)
+	result, err := ticketRepo.FindMyTickets(ctx, m.GetAppUserID(), param)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }

@@ -13,7 +13,6 @@ import (
 	"github.com/pecolynx/golang-webapi-boilerplate/src/config"
 	"github.com/pecolynx/golang-webapi-boilerplate/src/controller/gin/middleware"
 	"github.com/pecolynx/golang-webapi-boilerplate/src/log"
-	"github.com/pecolynx/golang-webapi-boilerplate/src/usecase"
 )
 
 type InitRouterGroupFunc func(parentRouterGroup *gin.RouterGroup, middleware ...gin.HandlerFunc) error
@@ -27,15 +26,6 @@ func NewInitTestRouterFunc() InitRouterGroupFunc {
 		test.GET("/ping", func(c *gin.Context) {
 			c.String(http.StatusOK, "pong")
 		})
-		return nil
-	}
-}
-
-func NewInitTicketRouterFunc(ticketCreatorUsecase usecase.TicketCreatorUsecase) InitRouterGroupFunc {
-	return func(parentRouterGroup *gin.RouterGroup, middleware ...gin.HandlerFunc) error {
-		ticket := parentRouterGroup.Group("ticket")
-		ticketHandler := NewTicketHandler(ticketCreatorUsecase)
-		ticket.POST("", ticketHandler.AddTicket)
 		return nil
 	}
 }

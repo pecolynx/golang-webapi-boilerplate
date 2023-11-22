@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 
@@ -11,18 +12,27 @@ import (
 	"github.com/pecolynx/golang-webapi-boilerplate/src/log"
 )
 
-func HandleSecuredFunction(c *gin.Context, fn func(operatorID domain.AppUserID) error, errorHandle func(c *gin.Context, err error) bool) {
+func HandleSecuredFunction(c *gin.Context, fn func(ctx context.Context, logger *slog.Logger, operatorID domain.AppUserID) error, errorHandle func(ctx context.Context, logger *slog.Logger, c *gin.Context, err error) bool) {
 	ctx := c.Request.Context()
-	logger := liblog.GetLoggerFromContext(ctx, log.AppAuthLoggerContextKey)
-	operatorID, err := domain.NewAppUserID(c.GetInt("AuthorizedUser"))
+	authLogger := liblog.GetLoggerFromContext(ctx, log.AppAuthLoggerContextKey)
+
+	appUserID := c.GetInt("AuthorizedUser")
+	if appUserID == 0 {
+		c.Status(http.StatusUnauthorized)
+		return
+	}
+
+	operatorID, err := domain.NewAppUserID(appUserID)
 	if err != nil {
 		c.Status(http.StatusUnauthorized)
 		return
 	}
 
-	logger.InfoContext(ctx, "", slog.Int("operator_id", operatorID.Int()))
-	if err := fn(operatorID); err != nil {
-		if handled := errorHandle(c, err); !handled {
+	authLogger.InfoContext(ctx, "", slog.Int("operator_id", operatorID.Int()))
+
+	controllerLogger := liblog.GetLoggerFromContext(ctx, log.AppControllerLoggerContextKey)
+	if err := fn(ctx, controllerLogger, operatorID); err != nil {
+		if handled := errorHandle(ctx, controllerLogger, c, err); !handled {
 			c.Status(http.StatusInternalServerError)
 		}
 	}

@@ -24,25 +24,25 @@ func (_m *AppUserRepository) EXPECT() *AppUserRepository_Expecter {
 	return &AppUserRepository_Expecter{mock: &_m.Mock}
 }
 
-// FindTicketCreatorByID provides a mock function with given fields: ctx, ticketCreatorID
-func (_m *AppUserRepository) FindTicketCreatorByID(ctx context.Context, ticketCreatorID domain.TicketCreatorID) (service.TicketCreator, error) {
-	ret := _m.Called(ctx, ticketCreatorID)
+// FindTicketCreatorByID provides a mock function with given fields: ctx, standardUserID
+func (_m *AppUserRepository) FindTicketCreatorByID(ctx context.Context, standardUserID domain.StandardUserID) (service.TicketCreator, error) {
+	ret := _m.Called(ctx, standardUserID)
 
 	var r0 service.TicketCreator
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, domain.TicketCreatorID) (service.TicketCreator, error)); ok {
-		return rf(ctx, ticketCreatorID)
+	if rf, ok := ret.Get(0).(func(context.Context, domain.StandardUserID) (service.TicketCreator, error)); ok {
+		return rf(ctx, standardUserID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, domain.TicketCreatorID) service.TicketCreator); ok {
-		r0 = rf(ctx, ticketCreatorID)
+	if rf, ok := ret.Get(0).(func(context.Context, domain.StandardUserID) service.TicketCreator); ok {
+		r0 = rf(ctx, standardUserID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(service.TicketCreator)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, domain.TicketCreatorID) error); ok {
-		r1 = rf(ctx, ticketCreatorID)
+	if rf, ok := ret.Get(1).(func(context.Context, domain.StandardUserID) error); ok {
+		r1 = rf(ctx, standardUserID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -57,14 +57,14 @@ type AppUserRepository_FindTicketCreatorByID_Call struct {
 
 // FindTicketCreatorByID is a helper method to define mock.On call
 //   - ctx context.Context
-//   - ticketCreatorID domain.TicketCreatorID
-func (_e *AppUserRepository_Expecter) FindTicketCreatorByID(ctx interface{}, ticketCreatorID interface{}) *AppUserRepository_FindTicketCreatorByID_Call {
-	return &AppUserRepository_FindTicketCreatorByID_Call{Call: _e.mock.On("FindTicketCreatorByID", ctx, ticketCreatorID)}
+//   - standardUserID domain.StandardUserID
+func (_e *AppUserRepository_Expecter) FindTicketCreatorByID(ctx interface{}, standardUserID interface{}) *AppUserRepository_FindTicketCreatorByID_Call {
+	return &AppUserRepository_FindTicketCreatorByID_Call{Call: _e.mock.On("FindTicketCreatorByID", ctx, standardUserID)}
 }
 
-func (_c *AppUserRepository_FindTicketCreatorByID_Call) Run(run func(ctx context.Context, ticketCreatorID domain.TicketCreatorID)) *AppUserRepository_FindTicketCreatorByID_Call {
+func (_c *AppUserRepository_FindTicketCreatorByID_Call) Run(run func(ctx context.Context, standardUserID domain.StandardUserID)) *AppUserRepository_FindTicketCreatorByID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(domain.TicketCreatorID))
+		run(args[0].(context.Context), args[1].(domain.StandardUserID))
 	})
 	return _c
 }
@@ -74,7 +74,7 @@ func (_c *AppUserRepository_FindTicketCreatorByID_Call) Return(_a0 service.Ticke
 	return _c
 }
 
-func (_c *AppUserRepository_FindTicketCreatorByID_Call) RunAndReturn(run func(context.Context, domain.TicketCreatorID) (service.TicketCreator, error)) *AppUserRepository_FindTicketCreatorByID_Call {
+func (_c *AppUserRepository_FindTicketCreatorByID_Call) RunAndReturn(run func(context.Context, domain.StandardUserID) (service.TicketCreator, error)) *AppUserRepository_FindTicketCreatorByID_Call {
 	_c.Call.Return(run)
 	return _c
 }

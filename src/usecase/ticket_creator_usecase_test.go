@@ -18,7 +18,9 @@ func Test_ticketCreatorUsecase_AddTicket(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
-	ticketCreatorID, err := domain.NewTicketCreatorID(123)
+	appUserID, err := domain.NewAppUserID(123)
+	require.NoError(t, err)
+	standardUserID, err := domain.NewStandardUserID(123)
 	require.NoError(t, err)
 	parameter, err := service.NewTicketAddParameter("TITLE", "DESCRIPTION")
 	require.NoError(t, err)
@@ -26,7 +28,7 @@ func Test_ticketCreatorUsecase_AddTicket(t *testing.T) {
 	require.NoError(t, err)
 
 	type input struct {
-		operatorID domain.TicketCreatorID
+		operatorID domain.StandardUserID
 		parameter  service.TicketAddParameter
 	}
 	type output struct {
@@ -40,7 +42,7 @@ func Test_ticketCreatorUsecase_AddTicket(t *testing.T) {
 		{
 			name: "success",
 			input: input{
-				operatorID: ticketCreatorID,
+				operatorID: standardUserID,
 				parameter:  parameter,
 			},
 			output: output{
@@ -54,8 +56,10 @@ func Test_ticketCreatorUsecase_AddTicket(t *testing.T) {
 			ticketRepositoryMock := new(service_mock.TicketRepository)
 			rfMock := new(service_mock.RepositoryFactory)
 			appUserModelMock := new(domain_mock.AppUserModel)
+			appUserModelMock.On("GetAppUserID").Return(appUserID)
 			ticketCreator, err := service.NewTicketCreator(appUserModelMock, rfMock)
 			require.NoError(t, err)
+			ticketCreator.GetAppUserID()
 			rfMock.On("NewAppUserRepository", ctx).Return(appUserRepoMock)
 			rfMock.On("NewTicketRepository", ctx).Return(ticketRepositoryMock)
 			transactionManager, err := gateway.NewNoneTransactionManager(rfMock)
@@ -64,16 +68,16 @@ func Test_ticketCreatorUsecase_AddTicket(t *testing.T) {
 
 			// given
 			appUserRepoMock.On("FindTicketCreatorByID", ctx, tt.input.operatorID).Return(ticketCreator, nil)
-			ticketRepositoryMock.On("AddTicket", ctx, ticketCreator, tt.input.parameter).Return(tt.output.ticketID, nil)
+			ticketRepositoryMock.On("AddTicket", ctx, appUserID, tt.input.parameter).Return(tt.output.ticketID, nil)
 
 			// when
-			addedTicketID, err := usecase.AddTicket(ctx, ticketCreatorID, parameter)
+			addedTicketID, err := usecase.AddTicket(ctx, standardUserID, tt.input.parameter)
 
 			// then
 			require.NoError(t, err)
 			assert.Equal(t, tt.output.ticketID.Int(), addedTicketID.Int())
-			appUserRepoMock.AssertCalled(t, "FindTicketCreatorByID", ctx, ticketCreatorID)
-			ticketRepositoryMock.AssertCalled(t, "AddTicket", ctx, ticketCreator, parameter)
+			appUserRepoMock.AssertCalled(t, "FindTicketCreatorByID", ctx, standardUserID)
+			ticketRepositoryMock.AssertExpectations(t)
 		})
 	}
 }

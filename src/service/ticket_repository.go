@@ -18,6 +18,8 @@ type TicketRepository interface {
 
 	RemoveTicket(ctx context.Context, operatorID domain.AppUserID, ticketID domain.TicketID, version int) error
 
+	FindMyTickets(ctx context.Context, operatorID domain.AppUserID, param TicketSearchCondition) (TicketSearchResult, error)
+
 	CanDo(ctx context.Context, operatorID domain.AppUserID, ticketID domain.TicketID, action domain.RBACAction) (bool, error)
 }
 
@@ -50,4 +52,66 @@ func (p *ticketAddParameter) GetTitle() string {
 
 func (p *ticketAddParameter) GetDescription() string {
 	return p.Description
+}
+
+type TicketSearchCondition interface {
+	GetPageNo() int
+	GetPageSize() int
+}
+
+type ticketSearchCondition struct {
+	PageNo   int `validate:"required,gte=1"`
+	PageSize int `validate:"required,gte=1,lte=1000"`
+}
+
+func NewProblemSearchCondition(pageNo, pageSize int) (TicketSearchCondition, error) {
+	m := &ticketSearchCondition{
+		PageNo:   pageNo,
+		PageSize: pageSize,
+	}
+
+	if err := libdomain.Validator.Struct(m); err != nil {
+		return nil, liberrors.Errorf("libdomain.Validator.Struct. err: %w", err)
+	}
+
+	return m, nil
+}
+
+func (c *ticketSearchCondition) GetPageNo() int {
+	return c.PageNo
+}
+
+func (c *ticketSearchCondition) GetPageSize() int {
+	return c.PageSize
+}
+
+type TicketSearchResult interface {
+	GetTotalCount() int
+	GetResults() []domain.TicketModel
+}
+
+type ticketSearchResult struct {
+	TotalCount int
+	Results    []domain.TicketModel
+}
+
+func NewProblemSearchResult(totalCount int, results []domain.TicketModel) (TicketSearchResult, error) {
+	m := &ticketSearchResult{
+		TotalCount: totalCount,
+		Results:    results,
+	}
+
+	if err := libdomain.Validator.Struct(m); err != nil {
+		return nil, liberrors.Errorf("libdomain.Validator.Struct. err: %w", err)
+	}
+
+	return m, nil
+}
+
+func (m *ticketSearchResult) GetTotalCount() int {
+	return m.TotalCount
+}
+
+func (m *ticketSearchResult) GetResults() []domain.TicketModel {
+	return m.Results
 }

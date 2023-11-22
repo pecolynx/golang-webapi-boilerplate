@@ -14,7 +14,7 @@ var ErrAppUserAlreadyExists = errors.New("appUser already exists")
 var ErrAppUserPermissionDenied = errors.New("permission denied")
 
 type AppUserRepository interface {
-	FindTicketCreatorByID(ctx context.Context, ticketCreatorID domain.TicketCreatorID) (TicketCreator, error)
+	FindTicketCreatorByID(ctx context.Context, standardUserID domain.StandardUserID) (TicketCreator, error)
 }
 
 type AppUserAddParameter interface {

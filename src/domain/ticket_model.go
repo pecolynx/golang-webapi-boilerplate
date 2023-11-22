@@ -26,23 +26,23 @@ func (v *ticketID) Int() int {
 type TicketModel interface {
 	libdomain.BaseModel
 	GetTicketID() TicketID
-	GetName() string
-	GetContent() string
+	GetTitle() string
+	GetDescription() string
 }
 
 type ticketModel struct {
 	libdomain.BaseModel
-	TicketID TicketID
-	Name     string `validate:"required"`
-	Content  string `validate:"required"`
+	TicketID    TicketID
+	Title       string `validate:"required"`
+	Description string
 }
 
-func NewTicketModel(model libdomain.BaseModel, ticketID TicketID, name string, content string) (TicketModel, error) {
+func NewTicketModel(model libdomain.BaseModel, ticketID TicketID, title string, description string) (TicketModel, error) {
 	m := &ticketModel{
-		BaseModel: model,
-		TicketID:  ticketID,
-		Name:      name,
-		Content:   content,
+		BaseModel:   model,
+		TicketID:    ticketID,
+		Title:       title,
+		Description: description,
 	}
 
 	if err := libdomain.Validator.Struct(m); err != nil {
@@ -56,10 +56,10 @@ func (m *ticketModel) GetTicketID() TicketID {
 	return m.TicketID
 }
 
-func (m *ticketModel) GetName() string {
-	return m.Name
+func (m *ticketModel) GetTitle() string {
+	return m.Title
 }
 
-func (m *ticketModel) GetContent() string {
-	return m.Content
+func (m *ticketModel) GetDescription() string {
+	return m.Description
 }

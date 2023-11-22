@@ -81,6 +81,61 @@ func (_c *TicketCreator_AddTicket_Call) RunAndReturn(run func(context.Context, s
 	return _c
 }
 
+// FindMyTickets provides a mock function with given fields: ctx, param
+func (_m *TicketCreator) FindMyTickets(ctx context.Context, param service.TicketSearchCondition) (service.TicketSearchResult, error) {
+	ret := _m.Called(ctx, param)
+
+	var r0 service.TicketSearchResult
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, service.TicketSearchCondition) (service.TicketSearchResult, error)); ok {
+		return rf(ctx, param)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, service.TicketSearchCondition) service.TicketSearchResult); ok {
+		r0 = rf(ctx, param)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(service.TicketSearchResult)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, service.TicketSearchCondition) error); ok {
+		r1 = rf(ctx, param)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// TicketCreator_FindMyTickets_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindMyTickets'
+type TicketCreator_FindMyTickets_Call struct {
+	*mock.Call
+}
+
+// FindMyTickets is a helper method to define mock.On call
+//   - ctx context.Context
+//   - param service.TicketSearchCondition
+func (_e *TicketCreator_Expecter) FindMyTickets(ctx interface{}, param interface{}) *TicketCreator_FindMyTickets_Call {
+	return &TicketCreator_FindMyTickets_Call{Call: _e.mock.On("FindMyTickets", ctx, param)}
+}
+
+func (_c *TicketCreator_FindMyTickets_Call) Run(run func(ctx context.Context, param service.TicketSearchCondition)) *TicketCreator_FindMyTickets_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(service.TicketSearchCondition))
+	})
+	return _c
+}
+
+func (_c *TicketCreator_FindMyTickets_Call) Return(_a0 service.TicketSearchResult, _a1 error) *TicketCreator_FindMyTickets_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *TicketCreator_FindMyTickets_Call) RunAndReturn(run func(context.Context, service.TicketSearchCondition) (service.TicketSearchResult, error)) *TicketCreator_FindMyTickets_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetAppUserID provides a mock function with given fields:
 func (_m *TicketCreator) GetAppUserID() domain.AppUserID {
 	ret := _m.Called()
