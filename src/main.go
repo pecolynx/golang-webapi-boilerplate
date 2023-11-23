@@ -160,7 +160,7 @@ func run(ctx context.Context, cfg *config.Config, transactionManager service.Tra
 	var eg *errgroup.Group
 	eg, ctx = errgroup.WithContext(ctx)
 
-	if !cfg.Debug.GinMode {
+	if !cfg.Debug.Gin {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
@@ -209,7 +209,7 @@ func appServer(ctx context.Context, cfg *config.Config, transactionManager servi
 		privateRouterGroupFunc,
 		// pluginRouterGroupFunc, authTokenManager,
 		corsConfig, cfg.App,
-		//cfg.Auth,
+		cfg.Auth,
 		cfg.Debug)
 	if err != nil {
 		panic(err)

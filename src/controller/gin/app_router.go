@@ -30,15 +30,12 @@ func NewInitTestRouterFunc() InitRouterGroupFunc {
 	}
 }
 
-func NewAppRouter(ctx context.Context, initPublicRouterFunc []InitRouterGroupFunc, initPrivateRouterFunc []InitRouterGroupFunc, //authTokenManager service.AuthTokenManager,
-	corsConfig cors.Config, appConfig *config.AppConfig,
-	// authConfig *config.AuthConfig,
-	debugConfig *config.DebugConfig) (*gin.Engine, error) {
+func NewAppRouter(ctx context.Context, initPublicRouterFunc []InitRouterGroupFunc, initPrivateRouterFunc []InitRouterGroupFunc, corsConfig cors.Config, appConfig *config.AppConfig, authConfig *config.AuthConfig, debugConfig *config.DebugConfig) (*gin.Engine, error) {
 	router := gin.New()
 	router.Use(cors.New(corsConfig))
 	router.Use(gin.Recovery())
 
-	if debugConfig.GinMode {
+	if debugConfig.Gin {
 		ginLogger := liblog.GetLoggerFromContext(ctx, log.AppGinLoggerContextKey)
 		router.Use(sloggin.New(ginLogger))
 	}
@@ -47,13 +44,16 @@ func NewAppRouter(ctx context.Context, initPublicRouterFunc []InitRouterGroupFun
 		router.Use(middleware.NewWaitMiddleware())
 	}
 
+	signingKey := []byte(authConfig.SigningKey)
+	authMiddleware := middleware.NewAuthMiddleware(signingKey)
+
 	v1 := router.Group("v1")
 	{
 		v1.Use(otelgin.Middleware(appConfig.Name))
 		v1.Use(middleware.NewTraceLogMiddleware(appConfig.Name))
 
 		for _, fn := range initPublicRouterFunc {
-			if err := fn(v1); err != nil {
+			if err := fn(v1, authMiddleware); err != nil {
 				return nil, err
 			}
 		}

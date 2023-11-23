@@ -9,14 +9,20 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 	"github.com/ohler55/ojg/jp"
 	"github.com/ohler55/ojg/oj"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	libdomain "github.com/pecolynx/golang-webapi-boilerplate/lib/domain"
+	"github.com/pecolynx/golang-webapi-boilerplate/src/config"
+	"github.com/pecolynx/golang-webapi-boilerplate/src/controller/auth"
 	handler "github.com/pecolynx/golang-webapi-boilerplate/src/controller/gin"
 	"github.com/pecolynx/golang-webapi-boilerplate/src/domain"
 	"github.com/pecolynx/golang-webapi-boilerplate/src/service"
@@ -24,24 +30,51 @@ import (
 	usecase_mock "github.com/pecolynx/golang-webapi-boilerplate/src/usecase/mocks"
 )
 
-var anythingOfContext = mock.MatchedBy(func(_ context.Context) bool { return true })
+var (
+	anythingOfContext = mock.MatchedBy(func(_ context.Context) bool { return true })
+	corsConfig        cors.Config
+	appConfig         *config.AppConfig
+	authConfig        *config.AuthConfig
+	debugConfig       *config.DebugConfig
+	authTokenManager  auth.AuthTokenManager
+)
 
-func initTicketRouter(t *testing.T, ticketCreatorUsecase usecase.TicketCreatorUsecase, authMiddleware gin.HandlerFunc) *gin.Engine {
-	router := gin.New()
-	router.Use(authMiddleware)
-	g := router.Group("v1")
-	fn := handler.NewInitTicketRouterFunc(ticketCreatorUsecase)
-	err := fn(g)
-	require.NoError(t, err)
-	return router
+func init() {
+	corsConfig = cors.Config{
+		AllowAllOrigins: true,
+		AllowMethods:    []string{"*"},
+		AllowHeaders:    []string{"*"},
+	}
+	appConfig = &config.AppConfig{
+		Name:        "test",
+		HTTPPort:    8080,
+		MetricsPort: 8081,
+	}
+	authConfig = &config.AuthConfig{
+		SigningKey:          "ah5T9Y9V2JPU74fhCtHQfDqLp3Zg8ZNc",
+		AccessTokenTTLMin:   1,
+		RefreshTokenTTLHour: 1,
+	}
+	debugConfig = &config.DebugConfig{
+		Gin:  false,
+		Wait: false,
+	}
+
+	signingKey := []byte(authConfig.SigningKey)
+	signingMethod := jwt.SigningMethodHS256
+	authTokenManager = auth.NewAuthTokenManager(signingKey, signingMethod, time.Duration(authConfig.AccessTokenTTLMin)*time.Minute, time.Duration(authConfig.RefreshTokenTTLHour)*time.Hour)
 }
 
-func newAuthMiddleware(appUserID domain.AppUserID, authenticated bool) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		if authenticated {
-			c.Set("AuthorizedUser", appUserID.Int())
-		}
-	}
+func initTicketRouter(t *testing.T, ctx context.Context, ticketCreatorUsecase usecase.TicketCreatorUsecase) *gin.Engine {
+	// router := gin.New()
+	// router.Use(authMiddleware)
+	// g := router.Group("v1")
+	fn := handler.NewInitTicketRouterFunc(ticketCreatorUsecase)
+	// err := fn(g)
+	// require.NoError(t, err)
+	router, err := handler.NewAppRouter(ctx, []handler.InitRouterGroupFunc{fn}, nil, corsConfig, appConfig, authConfig, debugConfig)
+	require.NoError(t, err)
+	return router
 }
 
 func parseJSON(t *testing.T, b *bytes.Buffer) interface{} {
@@ -56,6 +89,23 @@ func parseExpr(t *testing.T, v string) jp.Expr {
 	expr, err := jp.ParseString(v)
 	require.NoError(t, err)
 	return expr
+}
+
+func createTokenSet(t *testing.T, ctx context.Context) *auth.TokenSet {
+	appUserID, err := domain.NewAppUserID(1)
+	require.NoError(t, err)
+
+	now := time.Now()
+	baseModel, err := libdomain.NewBaseModel(1, now, now, 1, 1)
+	require.NoError(t, err)
+
+	appUserModel, err := domain.NewAppUserModel(baseModel, appUserID, "LOGIN_ID", "USERNAME")
+	require.NoError(t, err)
+
+	tokenSet, err := authTokenManager.CreateTokenSet(ctx, appUserModel)
+	require.NoError(t, err)
+
+	return tokenSet
 }
 
 func Test_ticketHandler_AddTicket(t *testing.T) {
@@ -122,13 +172,9 @@ func Test_ticketHandler_AddTicket(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// given
 			ticketID, err := domain.NewTicketID(tt.input.returnTicketID)
 			require.NoError(t, err)
-
-			// given
-			appUserID, err := domain.NewAppUserID(1)
-			require.NoError(t, err)
-			authMiddleware := newAuthMiddleware(appUserID, tt.input.authenticated)
 			ticketCreatorUsecase := new(usecase_mock.TicketCreatorUsecase)
 			ticketCreatorUsecase.On("AddTicket",
 				anythingOfContext,
@@ -137,7 +183,7 @@ func Test_ticketHandler_AddTicket(t *testing.T) {
 					return param.GetTitle() == "TITLE" && param.GetDescription() == "DESCRIPTION"
 				}),
 			).Return(ticketID, tt.input.returnErr)
-			r := initTicketRouter(t, ticketCreatorUsecase, authMiddleware)
+			r := initTicketRouter(t, ctx, ticketCreatorUsecase)
 
 			// when
 			body, err := json.Marshal(gin.H{
@@ -147,6 +193,10 @@ func Test_ticketHandler_AddTicket(t *testing.T) {
 			require.NoError(t, err)
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "/v1/ticket", bytes.NewBuffer(body))
 			require.NoError(t, err)
+			if tt.input.authenticated {
+				tokenSet := createTokenSet(t, ctx)
+				req.Header.Set("Authorization", "Bearer "+tokenSet.AccessToken)
+			}
 			w := httptest.NewRecorder()
 			r.ServeHTTP(w, req)
 
