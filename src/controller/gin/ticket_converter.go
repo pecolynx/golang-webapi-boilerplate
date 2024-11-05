@@ -38,7 +38,7 @@ func ToTicketAddParameter(param *TicketAddParameter) (service.TicketAddParameter
 }
 
 func ToTicketSearchCondition(param *TicketFindParameter) (service.TicketSearchCondition, error) {
-	serviceParam, err := service.NewProblemSearchCondition(param.PageNo, param.PageSize)
+	serviceParam, err := service.NewTicketSearchCondition(param.PageNo, param.PageSize)
 	if err != nil {
 		return nil, liberrors.Errorf(". err: %w", err)
 	}

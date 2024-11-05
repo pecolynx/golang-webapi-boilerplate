@@ -64,6 +64,7 @@ type TicketFindResponse struct {
 	TotalCount int                      `json:"totalCount" validate:"gte=0"`
 	Results    []*TicketResponseSummary `json:"results" validate:"dive"`
 }
+
 type IDResponse struct {
 	ID int `json:"id"`
 }

@@ -13,7 +13,7 @@ import (
 	libdomain "github.com/pecolynx/golang-webapi-boilerplate/lib/domain"
 	liberrors "github.com/pecolynx/golang-webapi-boilerplate/lib/errors"
 	libgateway "github.com/pecolynx/golang-webapi-boilerplate/lib/gateway"
-	domain "github.com/pecolynx/golang-webapi-boilerplate/src/domain"
+	"github.com/pecolynx/golang-webapi-boilerplate/src/domain"
 	"github.com/pecolynx/golang-webapi-boilerplate/src/gateway/casbinquery"
 	"github.com/pecolynx/golang-webapi-boilerplate/src/service"
 )
@@ -159,7 +159,7 @@ func (r *ticketRepository) FindMyTickets(ctx context.Context, operatorID domain.
 
 	if result := r.db.Model(&ticketEntity{}).
 		Joins("inner join (?) AS t3 ON `ticket`.`id`= t3."+objectColumnName, subQuery).
-		Order("`ticket`.`name`").Limit(limit).Offset(offset).
+		Order("`ticket`.`id`").Limit(limit).Offset(offset).
 		Scan(&ticketEntities); result.Error != nil {
 		return nil, result.Error
 	}
@@ -175,7 +175,7 @@ func (r *ticketRepository) FindMyTickets(ctx context.Context, operatorID domain.
 	}
 
 	var count int64
-	rows, err := r.db.Raw("select count(*) from workbook inner join (?) AS t3 ON `workbook`.`id`= t3."+objectColumnName, subQuery).Rows()
+	rows, err := r.db.Raw("select count(*) from `ticket` inner join (?) AS t3 ON `ticket`.`id`= t3."+objectColumnName, subQuery).Rows()
 	if err != nil {
 		return nil, liberrors.Errorf("r.db.Raw. err: %w", err)
 	}

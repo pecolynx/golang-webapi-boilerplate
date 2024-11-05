@@ -15,6 +15,8 @@ var ErrAppUserPermissionDenied = errors.New("permission denied")
 
 type AppUserRepository interface {
 	FindTicketCreatorByID(ctx context.Context, standardUserID domain.StandardUserID) (TicketCreator, error)
+
+	AddAppUser(ctx context.Context, operator domain.OwnerModel, param AppUserAddParameter) (domain.AppUserID, error)
 }
 
 type AppUserAddParameter interface {

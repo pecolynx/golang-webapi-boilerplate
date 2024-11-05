@@ -64,7 +64,7 @@ type ticketSearchCondition struct {
 	PageSize int `validate:"required,gte=1,lte=1000"`
 }
 
-func NewProblemSearchCondition(pageNo, pageSize int) (TicketSearchCondition, error) {
+func NewTicketSearchCondition(pageNo, pageSize int) (TicketSearchCondition, error) {
 	m := &ticketSearchCondition{
 		PageNo:   pageNo,
 		PageSize: pageSize,
